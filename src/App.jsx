@@ -13,12 +13,12 @@ L.Icon.Default.mergeOptions({
 });
 
 const BENIN_FACTS = {
-  population: "13,754,688 (2023 est.)",
+  population: "13,754,688 (est. 2023)",
   area: "112,622 km²",
   regime: "République Présidentielle",
   currency: "Franc CFA (XOF)",
   independence: "1er Août 1960",
-  capital: "Porto-Novo (constitutionnelle), Cotonou (siège)",
+  capital: "Porto-Novo (const.), Cotonou (siège)",
   sources: [
     { name: "CIA World Factbook", url: "https://www.cia.gov/the-world-factbook/countries/benin/" },
     { name: "Gouvernement du Bénin", url: "https://www.gouv.bj/" },
@@ -28,13 +28,13 @@ const BENIN_FACTS = {
 
 export default function App() {
   const [news] = useState([
-    { id: 1, source: '24H BENIN', title: 'Plan d\'action sÃ©curitaire : Le gouvernement renforce la surveillance au Nord.', date: 'Mar 2026', url: 'https://www.24haubenin.info/' },
-    { id: 2, source: 'LA FRATERNITE', title: 'Economie : Le PIB du BÃ©nin affiche une croissance rÃ©siliente.', date: 'FÃ©v 2026', url: 'https://lafraternite.bj/' }
+    { id: 1, source: '24H BENIN', title: 'Plan d\'action sécuritaire : Le gouvernement renforce la surveillance au Nord.', date: 'Mars 2026', url: 'https://www.24haubenin.info/' },
+    { id: 2, source: 'LA FRATERNITE', title: 'Économie : Le PIB du Bénin affiche une croissance résiliente.', date: 'Févr. 2026', url: 'https://lafraternite.bj/' }
   ]);
 
   const [alerts] = useState([
     { id: 1, type: 'critical', title: 'Menace terroriste - Nord', details: 'Activité accrue des groupes armés non-étatiques dans le parc W.', source: 'Tellimer', url: 'https://tellimer.com/research' },
-    { id: 2, type: 'info', title: 'StabilitÃ© Constitutionnelle', details: 'Continuité démocratique après échec tentative coup déc 2025.', source: 'Reuters', url: 'https://www.reuters.com/' }
+    { id: 2, type: 'info', title: 'Stabilité Constitutionnelle', details: 'Continuité démocratique après échec tentative coup déc. 2025.', source: 'Reuters', url: 'https://www.reuters.com/' }
   ]);
 
   return (
@@ -42,7 +42,7 @@ export default function App() {
       <header className="hdr">
         <div className="logo-box">
           <span className="logo-main">BÉNIN MONITOR</span>
-          <span className="logo-sub">SYSTEM V4.0.2</span>
+          <span className="logo-sub">SYSTEM V4.0.5</span>
         </div>
         <div className="hdr-right">
           <div className="live-pulse">● LIVE DATA FEED</div>
