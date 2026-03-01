@@ -1,1 +1,126 @@
-import{useState,useEffect}from'react';import{MapContainer,TileLayer,Marker,Popup,Circle}from'react-leaflet';import'leaflet/dist/leaflet.css';import L from'leaflet';import'./App.css';delete L.Icon.Default.prototype._getIconUrl;L.Icon.Default.mergeOptions({iconRetinaUrl:'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',iconUrl:'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',shadowUrl:'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png'});const USD_TO_XOF=555;function App(){const[news,setNews]=useState([]);const[securityAlerts,setSecurityAlerts]=useState([]);const[intlPerception,setIntlPerception]=useState([]);useEffect(()=>{const mockNews=[{id:1,source:'LAFRATENITE',title:'Port de Cotonou: Nouveau terminal conteneurs opérationnel',time:'il y a 3h'},{id:2,source:'24H BENIN',title:'Sommet CEDEAO à Porto-Novo : Agenda sécuritaire prioritaire',time:'il y a 7h'},{id:3,source:'MATIN LIBRE',title:'Agriculture: Le Benin augmente ses exportations de coton',time:'il y a 12h'}];setNews(mockNews);const mockSecurity=[{id:1,type:'resolved',title:'Tentative de coup d\'État déjouée',date:'7 Déc 2025',description:'Forces loyalistes ont rapidement contenu l\'opération à Cotonou. 31 arrestations.',severity:'high',source:'Reuters'},{id:2,type:'ongoing',title:'Menace terroriste au Nord',location:'Parc W / Pendjari',description:'Incursions jihadistes régulières depuis début 2026. JNIM actif.',severity:'high',zone:'Alibori, Atacora'},{id:3,type:'warning',title:'Zone à risque élevé',location:'Tanguiéta, Kalalé',description:'Attaques récentes sur postes militaires. Renforcement sécuritaire en cours.',severity:'medium'}];setSecurityAlerts(mockSecurity);const mockIntl=[{id:1,source:'Transparency Intl',title:'Bénin 70e mondial (45/100) - Stabilité gouvernance',date:'10 Fév 2026',sentiment:'positive'},{id:2,source:'Reuters',title:'Obligations internationales reculent après tentative coup',date:'8 Déc 2025',sentiment:'neutral'},{id:3,source:'Tellimer Analysis',title:'53 ans sans coup réussi - Résilience démocratique confirmée',date:'Déc 2025',sentiment:'positive'},{id:4,source:'ECOWAS',title:'Engagement déploiement Force en attente - Soutien constitutionnel',date:'Déc 2025',sentiment:'positive'}];setIntlPerception(mockIntl);},[]);const cities=[{name:'Cotonou',pos:[6.3654,-2.4183],pop:'679k'},{name:'Porto-Novo',pos:[6.4969,2.6289],pop:'264k'},{name:'Parakou',pos:[9.3372,2.6103],pop:'255k'},{name:'Djougou',pos:[9.7084,1.6660],pop:'268k'},{name:'Natitingou',pos:[10.3042,1.3797],pop:'104k'},{name:'Abomey',pos:[7.1826,1.9914],pop:'90k'}];const riskZones=[{name:'Parc W',pos:[11.8,2.4],radius:50000,level:'high'},{name:'Pendjari',pos:[11.0,1.5],radius:40000,level:'high'},{name:'Kalalé',pos:[10.29,3.38],radius:25000,level:'medium'}];return(<div className="app"><header><h1>BJ BENIN MONITOR</h1><div className="status"><span className="time">{new Date().toLocaleTimeString('fr-FR')}</span><span className="live">● LIVE</span></div></header><div className="container"><div className="left-panel"><section className="map-section"><h2>Carte du Benin</h2><MapContainer center={[9.5,2.25]}zoom={7}style={{height:'400px',width:'100%'}}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'/>{cities.map(city=>(<Marker key={city.name}position={city.pos}><Popup>{city.name}<br/>Pop: {city.pop}</Popup></Marker>))}{riskZones.map(zone=>(<Circle key={zone.name}center={zone.pos}radius={zone.radius}pathOptions={{color:zone.level==='high'?'#ff4444':'#ff9944',fillColor:zone.level==='high'?'#ff4444':'#ff9944',fillOpacity:0.2}}><Popup><strong>{zone.name}</strong><br/>Niveau: {zone.level==='high'?'Élevé':'Moyen'}</Popup></Circle>))}</MapContainer></section><section className="security-section"><h2>🛡️ INDICATEURS SÉCURITAIRES</h2><div className="security-grid">{securityAlerts.map(alert=>(<div key={alert.id}className={`security-card severity-${alert.severity}`}><div className="security-header"><span className={`badge ${alert.type}`}>{alert.type==='resolved'?'✓ RÉSOLU':alert.type==='ongoing'?'⚠ EN COURS':'⚡ ALERTE'}</span><span className="date">{alert.date||'Temps réel'}</span></div><h3>{alert.title}</h3>{alert.location&&<p className="location">📍 {alert.location}</p>}<p className="description">{alert.description}</p>{alert.zone&&<p className="zone"><strong>Zones:</strong> {alert.zone}</p>}{alert.source&&<p className="source">Source: {alert.source}</p>}</div>))}</div></section><section className="youtube-section"><h2>📺 SRT BÉNIN - DIRECT</h2><div className="youtube-embed"><iframe width="100%"height="400"src="https://www.youtube.com/embed/live_stream?channel=UCxJlGbHU5InsKmvSf1Qd-TA"title="SRT Bénin Live"frameBorder="0"allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"allowFullScreen></iframe><div className="youtube-links"><a href="https://www.youtube.com/@srtbenin/streams"target="_blank"rel="noopener noreferrer">Voir tous les directs →</a></div></div></section></div><div className="right-panel"><section className="financial-section"><h2>FLUX FINANCIERS</h2><div className="financial-grid"><div className="fin-card"><div className="fin-value">{(2.9*USD_TO_XOF).toFixed(0)}B</div><div className="fin-label">IDE 2025</div><div className="fin-change positive">+19.2%</div><div className="fin-usd">($2.9B)</div></div><div className="fin-card"><div className="fin-value">{(912*USD_TO_XOF).toFixed(0)}M</div><div className="fin-label">REMITTANCES</div><div className="fin-change positive">+13.8%</div><div className="fin-usd">($912M)</div></div><div className="fin-card"><div className="fin-value">{(1.3*USD_TO_XOF).toFixed(0)}B</div><div className="fin-label">BUDGET 2026</div><div className="fin-change positive">+8.5%</div><div className="fin-usd">($1.3B)</div></div><div className="fin-card"><div className="fin-value">4.1%</div><div className="fin-label">INFLATION</div><div className="fin-change negative">-1.2%</div></div></div></section><section className="chart-section"><h2>INDICATEURS</h2><div className="chart"><div className="bar"style={{height:'80%'}}><span>IDE</span></div><div className="bar"style={{height:'35%'}}><span>Budget</span></div><div className="bar"style={{height:'30%'}}><span>Remit</span></div><div className="bar"style={{height:'40%'}}><span>Export</span></div></div></section><section className="intl-section"><h2>🌍 PERCEPTION INTERNATIONALE</h2><div className="intl-grid">{intlPerception.map(item=>(<div key={item.id}className={`intl-card sentiment-${item.sentiment}`}><div className="intl-source">{item.source}</div><h4>{item.title}</h4><div className="intl-date">{item.date}</div><div className={`sentiment-badge ${item.sentiment}`}>{item.sentiment==='positive'?'✓ Positif':item.sentiment==='negative'?'✗ Négatif':'◐ Neutre'}</div></div>))}</div></section><section className="news-section"><h2>MÉDIAS BÉNINOIS</h2><div className="news-list">{news.map(item=>(<div key={item.id}className="news-item"><div className="news-source">{item.source}</div><div className="news-title">{item.title}</div><div className="news-time">{item.time}</div></div>))}</div></section></div></div></div>);}export default App;
+
+import { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import './App.css';
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+const BENIN_FACTS = {
+  population: "13,754,688 (2023 est.)",
+  area: "112,622 km²",
+  regime: "République Présidentielle",
+  currency: "Franc CFA (XOF)",
+  independence: "1er Août 1960",
+  capital: "Porto-Novo (constitutionnelle), Cotonou (siège)",
+  sources: [
+    { name: "CIA World Factbook", url: "https://www.cia.gov/the-world-factbook/countries/benin/" },
+    { name: "Gouvernement du Bénin", url: "https://www.gouv.bj/" },
+    { name: "Banque Mondiale", url: "https://data.worldbank.org/country/benin" }
+  ]
+};
+
+export default function App() {
+  const [news] = useState([
+    { id: 1, source: '24H BENIN', title: 'Plan d\'action sÃ©curitaire : Le gouvernement renforce la surveillance au Nord.', date: 'Mar 2026', url: 'https://www.24haubenin.info/' },
+    { id: 2, source: 'LA FRATERNITE', title: 'Economie : Le PIB du BÃ©nin affiche une croissance rÃ©siliente.', date: 'FÃ©v 2026', url: 'https://lafraternite.bj/' }
+  ]);
+
+  const [alerts] = useState([
+    { id: 1, type: 'critical', title: 'Menace terroriste - Nord', details: 'Activité accrue des groupes armés non-étatiques dans le parc W.', source: 'Tellimer', url: 'https://tellimer.com/research' },
+    { id: 2, type: 'info', title: 'StabilitÃ© Constitutionnelle', details: 'Continuité démocratique après échec tentative coup déc 2025.', source: 'Reuters', url: 'https://www.reuters.com/' }
+  ]);
+
+  return (
+    <div className="bj-monitor-pro">
+      <header className="hdr">
+        <div className="logo-box">
+          <span className="logo-main">BÉNIN MONITOR</span>
+          <span className="logo-sub">SYSTEM V4.0.2</span>
+        </div>
+        <div className="hdr-right">
+          <div className="live-pulse">● LIVE DATA FEED</div>
+          <div className="time">{new Date().toLocaleTimeString('fr-FR')}</div>
+        </div>
+      </header>
+
+      <div className="layout">
+        <aside className="panel p-left">
+          <div className="section">
+            <h3><span className="icon">📊</span> RÉSUMÉ NATIONAL</h3>
+            <div className="info-grid">
+              <div className="info-item"><label>Population</label><span>{BENIN_FACTS.population}</span></div>
+              <div className="info-item"><label>Superficie</label><span>{BENIN_FACTS.area}</span></div>
+              <div className="info-item"><label>Régime</label><span>{BENIN_FACTS.regime}</span></div>
+              <div className="info-item"><label>Devise</label><span>{BENIN_FACTS.currency}</span></div>
+              <div className="info-item"><label>Capitale</label><span>{BENIN_FACTS.capital}</span></div>
+            </div>
+          </div>
+
+          <div className="section">
+            <h3><span className="icon">🔗</span> SOURCES OFFICIELLES</h3>
+            <div className="source-list">
+              {BENIN_FACTS.sources.map(s => (
+                <a key={s.name} href={s.url} target="_blank" className="src-link">{s.name} <small>↗</small></a>
+              ))}
+            </div>
+          </div>
+
+          <div className="section srt">
+            <h3><span className="icon">📺</span> DIRECT SRT BÉNIN</h3>
+            <iframe src="https://www.youtube.com/embed/live_stream?channel=UCxJlGbHU5InsKmvSf1Qd-TA" className="video-frame" frameBorder="0" allowFullScreen></iframe>
+          </div>
+        </aside>
+
+        <main className="panel p-center">
+          <div className="map-container-wrap">
+            <MapContainer center={[9.3, 2.3]} zoom={7} className="leaflet-map" zoomControl={false}>
+              <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" attribution='© CARTO' />
+              <Circle center={[11.5, 2.0]} radius={50000} pathOptions={{color:'#ff0055', fillColor:'#ff0055', fillOpacity:0.1}} />
+              <Marker position={[6.36, 2.41]}><Popup>Cotonou (Siège)</Popup></Marker>
+              <Marker position={[6.5, 2.6]}><Popup>Porto-Novo (Capitale)</Popup></Marker>
+            </MapContainer>
+            <div className="map-overlay">GRID: B4-BENIN / SECTOR: WEST AFRICA</div>
+          </div>
+        </main>
+
+        <aside className="panel p-right">
+          <div className="section">
+            <h3><span className="icon">🛡️</span> ALERTES SÉCURITÉ</h3>
+            {alerts.map(a => (
+              <div key={a.id} className={"alert-card " + a.type}>
+                <div className="alert-head">
+                  <span className="alert-type">{a.type.toUpperCase()}</span>
+                  <span className="alert-src">{a.source}</span>
+                </div>
+                <h4>{a.title}</h4>
+                <p>{a.details}</p>
+                <a href={a.url} target="_blank" className="fact-check">FACT-CHECK SOURCE 🔗</a>
+              </div>
+            ))}
+          </div>
+
+          <div className="section">
+            <h3><span className="icon">🗞️</span> DERNIÈRES NOUVELLES</h3>
+            {news.map(n => (
+              <div key={n.id} className="news-card">
+                <div className="news-meta">
+                  <span className="news-src">{n.source}</span>
+                  <span className="news-date">{n.date}</span>
+                </div>
+                <p>{n.title}</p>
+                <a href={n.url} target="_blank" className="src-link-sm">LIRE LA SUITE 🔗</a>
+              </div>
+            ))}
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}
