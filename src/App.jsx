@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import './App.css';
@@ -12,29 +13,47 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-const BENIN_FACTS = {
-  population: "13,754,688 (est. 2023)",
-  area: "112,622 km²",
-  regime: "République Présidentielle",
-  currency: "Franc CFA (XOF)",
-  independence: "1er Août 1960",
-  capital: "Porto-Novo (const.), Cotonou (siège)",
-  sources: [
-    { name: "CIA World Factbook", url: "https://www.cia.gov/the-world-factbook/countries/benin/" },
-    { name: "Gouvernement du Bénin", url: "https://www.gouv.bj/" },
-    { name: "Banque Mondiale", url: "https://data.worldbank.org/country/benin" }
+const ECON_DATA = [
+  { year: '2021', gdp: 7.2, inflation: 1.7 },
+  { year: '2022', gdp: 6.3, inflation: 1.4 },
+  { year: '2023', gdp: 6.4, inflation: 3.4 },
+  { year: '2024', gdp: 7.45, inflation: 2.3 },
+  { year: '2025', gdp: 7.6, inflation: 2.0 },
+];
+
+const CITIES = [
+  { name: 'Cotonou', pos: [6.365, 2.418], pop: '679k', info: 'Port & Commerce' },
+  { name: 'Porto-Novo', pos: [6.497, 2.629], pop: '264k', info: 'Capitale Culturelle' },
+  { name: 'Parakou', pos: [9.337, 2.630], pop: '255k', info: 'Hub de Transport' },
+  { name: 'Djougou', pos: [9.708, 1.666], pop: '268k', info: 'Commerce Nord' },
+  { name: 'Bohicon', pos: [7.178, 2.067], pop: '125k', info: 'Carrefour Routier' },
+  { name: 'Abomey-Calavi', pos: [6.448, 2.355], pop: '385k', info: 'Université & Résidentiel' },
+  { name: 'Natitingou', pos: [10.304, 1.379], pop: '104k', info: 'Tourisme (Atacora)' },
+  { name: 'Kandi', pos: [11.134, 2.938], pop: '110k', info: 'Coton & Frontière' },
+  { name: 'Ouidah', pos: [6.363, 2.085], pop: '83k', info: 'Histoire & Mémoire' }
+];
+
+const WEATHER = [
+  { city: 'Cotonou', temp: 31, cond: 'Ensoleillé' },
+  { city: 'Parakou', temp: 34, cond: 'Dégagé' },
+  { city: 'Natitingou', temp: 29, cond: 'Part. Nuageux' }
+];
+
+const VIDEOS = {
+  tourism: [
+    { id: 'n5cUiPrDc00', title: 'Top 10 à faire au Bénin' },
+    { id: 'go5s1fLiKUA', title: 'Merveilles du Bénin' }
+  ],
+  mentions: [
+    { id: '9vtlkFVcZcU', title: 'Première visite : Surprise !' }
   ]
 };
 
 export default function App() {
+  const [activeTab, setActiveTab] = useState('tourism');
   const [news] = useState([
-    { id: 1, source: '24H BENIN', title: 'Plan d\'action sécuritaire : Le gouvernement renforce la surveillance au Nord.', date: 'Mars 2026', url: 'https://www.24haubenin.info/' },
-    { id: 2, source: 'LA FRATERNITE', title: 'Économie : Le PIB du Bénin affiche une croissance résiliente.', date: 'Févr. 2026', url: 'https://lafraternite.bj/' }
-  ]);
-
-  const [alerts] = useState([
-    { id: 1, type: 'critical', title: 'Menace terroriste - Nord', details: 'Activité accrue des groupes armés non-étatiques dans le parc W.', source: 'Tellimer', url: 'https://tellimer.com/research' },
-    { id: 2, type: 'info', title: 'Stabilité Constitutionnelle', details: 'Continuité démocratique après échec tentative coup déc. 2025.', source: 'Reuters', url: 'https://www.reuters.com/' }
+    { id: 1, source: '24H BENIN', title: 'Plan d\'action sécuritaire au Nord.', date: 'Mars 2026', url: 'https://www.24haubenin.info/' },
+    { id: 2, source: 'LA FRATERNITE', title: 'PIB : Croissance résiliente confirmée.', date: 'Févr. 2026', url: 'https://lafraternite.bj/' }
   ]);
 
   return (
@@ -42,10 +61,10 @@ export default function App() {
       <header className="hdr">
         <div className="logo-box">
           <span className="logo-main">BÉNIN MONITOR</span>
-          <span className="logo-sub">SYSTEM V4.0.5</span>
+          <span className="logo-sub">SYSTEM V5.0.1</span>
         </div>
         <div className="hdr-right">
-          <div className="live-pulse">● LIVE DATA FEED</div>
+          <div className="live-pulse">● LIVE OPS</div>
           <div className="time">{new Date().toLocaleTimeString('fr-FR')}</div>
         </div>
       </header>
@@ -53,69 +72,97 @@ export default function App() {
       <div className="layout">
         <aside className="panel p-left">
           <div className="section">
-            <h3><span className="icon">📊</span> RÉSUMÉ NATIONAL</h3>
-            <div className="info-grid">
-              <div className="info-item"><label>Population</label><span>{BENIN_FACTS.population}</span></div>
-              <div className="info-item"><label>Superficie</label><span>{BENIN_FACTS.area}</span></div>
-              <div className="info-item"><label>Régime</label><span>{BENIN_FACTS.regime}</span></div>
-              <div className="info-item"><label>Devise</label><span>{BENIN_FACTS.currency}</span></div>
-              <div className="info-item"><label>Capitale</label><span>{BENIN_FACTS.capital}</span></div>
+            <h3>📊 ÉCONOMIE (CROISSANCE %)</h3>
+            <div className="chart-wrap">
+              <ResponsiveContainer width="100%" height={150}>
+                <LineChart data={ECON_DATA}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#222" />
+                  <XAxis dataKey="year" stroke="#888" fontSize={10} />
+                  <YAxis stroke="#888" fontSize={10} />
+                  <Tooltip contentStyle={{background:'#000', border:'1px solid #00f2ff'}} />
+                  <Line type="monotone" dataKey="gdp" stroke="#00f2ff" strokeWidth={2} dot={{r:3}} />
+                  <Line type="monotone" dataKey="inflation" stroke="#ff0055" strokeWidth={2} dot={{r:3}} />
+                </LineChart>
+              </ResponsiveContainer>
+              <div className="chart-legend">
+                <span className="leg-gdp">■ PIB</span>
+                <span className="leg-inf">■ Inflation</span>
+              </div>
             </div>
           </div>
 
           <div className="section">
-            <h3><span className="icon">🔗</span> SOURCES OFFICIELLES</h3>
-            <div className="source-list">
-              {BENIN_FACTS.sources.map(s => (
-                <a key={s.name} href={s.url} target="_blank" className="src-link">{s.name} <small>↗</small></a>
+            <h3>🌡️ MÉTÉO PAR RÉGION</h3>
+            <div className="weather-grid">
+              {WEATHER.map(w => (
+                <div key={w.city} className="w-item">
+                  <span className="w-city">{w.city}</span>
+                  <span className="w-temp">{w.temp}°C</span>
+                  <span className="w-cond">{w.cond}</span>
+                </div>
               ))}
             </div>
           </div>
 
-          <div className="section srt">
-            <h3><span className="icon">📺</span> DIRECT SRT BÉNIN</h3>
-            <iframe src="https://www.youtube.com/embed/live_stream?channel=UCxJlGbHU5InsKmvSf1Qd-TA" className="video-frame" frameBorder="0" allowFullScreen></iframe>
+          <div className="section">
+            <h3>📺 MÉDIA & TOURISME</h3>
+            <div className="tab-buttons">
+              <button className={activeTab === 'tourism' ? 'active' : ''} onClick={() => setActiveTab('tourism')}>Tourisme</button>
+              <button className={activeTab === 'mentions' ? 'active' : ''} onClick={() => setActiveTab('mentions')}>Vlogs</button>
+              <button className={activeTab === 'direct' ? 'active' : ''} onClick={() => setActiveTab('direct')}>Direct</button>
+            </div>
+            <div className="video-content">
+              {activeTab === 'direct' ? (
+                <iframe src="https://www.youtube.com/embed/live_stream?channel=UCxJlGbHU5InsKmvSf1Qd-TA" className="v-frame" frameBorder="0" allowFullScreen></iframe>
+              ) : (
+                VIDEOS[activeTab].map(v => (
+                  <div key={v.id} className="v-item">
+                    <iframe src={"https://www.youtube.com/embed/" + v.id} className="v-frame-sm" frameBorder="0" allowFullScreen></iframe>
+                    <p>{v.title}</p>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </aside>
 
         <main className="panel p-center">
           <div className="map-container-wrap">
             <MapContainer center={[9.3, 2.3]} zoom={7} className="leaflet-map" zoomControl={false}>
-              <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" attribution='© CARTO' />
+              <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" attribution='&copy; CARTO' />
+              {CITIES.map(c => (
+                <Marker key={c.name} position={c.pos}>
+                  <Popup>
+                    <strong>{c.name}</strong><br/>
+                    Pop: {c.pop}<br/>
+                    <em>{c.info}</em>
+                  </Popup>
+                </Marker>
+              ))}
               <Circle center={[11.5, 2.0]} radius={50000} pathOptions={{color:'#ff0055', fillColor:'#ff0055', fillOpacity:0.1}} />
-              <Marker position={[6.36, 2.41]}><Popup>Cotonou (Siège)</Popup></Marker>
-              <Marker position={[6.5, 2.6]}><Popup>Porto-Novo (Capitale)</Popup></Marker>
             </MapContainer>
-            <div className="map-overlay">GRID: B4-BENIN / SECTOR: WEST AFRICA</div>
+            <div className="map-overlay">ZONES OPÉRATIONNELLES : BÉNIN SECTOR</div>
           </div>
         </main>
 
         <aside className="panel p-right">
           <div className="section">
-            <h3><span className="icon">🛡️</span> ALERTES SÉCURITÉ</h3>
-            {alerts.map(a => (
-              <div key={a.id} className={"alert-card " + a.type}>
-                <div className="alert-head">
-                  <span className="alert-type">{a.type.toUpperCase()}</span>
-                  <span className="alert-src">{a.source}</span>
-                </div>
-                <h4>{a.title}</h4>
-                <p>{a.details}</p>
-                <a href={a.url} target="_blank" className="fact-check">FACT-CHECK SOURCE 🔗</a>
-              </div>
-            ))}
+            <h3>🛡️ ALERTES RÉELLES</h3>
+            <div className="alert-card critical">
+              <div className="alert-head">CRITICAL | TELLIMER</div>
+              <h4>Menace Nord</h4>
+              <p>Incursions signalées zone Parc W.</p>
+              <a href="https://tellimer.com" target="_blank" className="fact-check">CHECK SOURCE 🔗</a>
+            </div>
           </div>
 
           <div className="section">
-            <h3><span className="icon">🗞️</span> DERNIÈRES NOUVELLES</h3>
+            <h3>🗞️ DERNIÈRES INFOS</h3>
             {news.map(n => (
               <div key={n.id} className="news-card">
-                <div className="news-meta">
-                  <span className="news-src">{n.source}</span>
-                  <span className="news-date">{n.date}</span>
-                </div>
+                <div className="news-meta"><span>{n.source}</span><span>{n.date}</span></div>
                 <p>{n.title}</p>
-                <a href={n.url} target="_blank" className="src-link-sm">LIRE LA SUITE 🔗</a>
+                <a href={n.url} target="_blank" className="src-link-sm">FACT-CHECK 🔗</a>
               </div>
             ))}
           </div>
