@@ -1,3 +1,1 @@
-import {useState,useEffect} from 'react';import {MapContainer,TileLayer,GeoJSON} from 'react-leaflet';import 'leaflet/dist/leaflet.css';import './App.css';
-export default function App(){const [g,sG]=useState(null);useEffect(()=>{fetch('https://raw.githubusercontent.com/wmgeolab/geoBoundaries/main/releaseData/gbOpen/BEN/ADM1/geoBoundaries-BEN-ADM1_simplified.geojson').then(r=>r.json()).then(sG)},[]);
-return(<div className="v51"><header><h1>BJ MONITOR V5.1</h1></header><div style={{height:'90vh'}}><MapContainer center={[9.5,2.2]} zoom={7} style={{height:'100%'}}><TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"/>{g&&<GeoJSON data={g} style={{color:'#0ff',weight:1,fillOpacity:0.1}}/>}</MapContainer></div></div>);}
+test content
