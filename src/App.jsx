@@ -1,7 +1,8 @@
 
-import React,{useState,useEffect,useRef,useCallback}from'react';
-import{MapContainer,TileLayer,GeoJSON,useMap}from'react-leaflet';
+import React,{useState,useEffect,useRef}from'react';
+import{MapContainer,TileLayer,GeoJSON}from'react-leaflet';
 import'leaflet/dist/leaflet.css';
+import'./App.css';
 
 const DEPTS=['Alibori','Atacora','Atlantique','Borgou','Collines','Couffo','Donga','Littoral','Mono','Oueme','Plateau','Zou'];
 
@@ -31,7 +32,6 @@ export default function App(){
   const [tick,setTick]=useState(0);
   const [sel,setSel]=useState(null);
   const [layers,setLayers]=useState({SECURITE:true,METEO:true,ECONOMIE:true,FRONTIERES:true,INFRA:false});
-  const [alerts,setAlerts]=useState(ALERTS_BASE);
   const [tickerIdx,setTickerIdx]=useState(0);
   const tickRef=useRef(0);
 
@@ -50,22 +50,9 @@ export default function App(){
   },[]);
 
   const gS=Math.round(Object.values(scores).reduce((a,d)=>a+d.score,0)/Object.keys(scores).length);
-
-  const styleGeo=(f)=>{
-    const nm=f.properties.shapeName;
-    const d=scores[nm]||{score:30};
-    return{weight:1,color:'#00ffcc44',fillColor:riskColor(d.score),fillOpacity:0.6};
-  };
-
-  const onEachFeature=(f,l)=>{
-    const nm=f.properties.shapeName||'?';
-    const d=scores[nm]||{score:0,incidents:0,meteo:'A'};
-    l.bindPopup('<b>'+nm+'</b><br>Risque: '+Math.round(d.score)+'/100<br>Incidents: '+d.incidents+'<br>Meteo: '+d.meteo);
-    l.on('click',()=>setSel(nm));
-  };
-
-  const now=new Date();
-  const time=now.toTimeString().slice(0,8);
+  const styleGeo=(f)=>{const nm=f.properties.shapeName;const d=scores[nm]||{score:30};return{weight:1,color:'#00ffcc44',fillColor:riskColor(d.score),fillOpacity:0.6};};
+  const onEachFeature=(f,l)=>{const nm=f.properties.shapeName||'?';const d=scores[nm]||{score:0,incidents:0,meteo:'A'};l.bindPopup('<b>'+nm+'</b><br>Risque: '+Math.round(d.score)+'/100<br>Incidents: '+d.incidents+'<br>Meteo: '+d.meteo);l.on('click',()=>setSel(nm));};
+  const now=new Date();const time=now.toTimeString().slice(0,8);
 
   return <div className='app'>
     <header className='hdr'>
@@ -85,9 +72,7 @@ export default function App(){
           <h3>INDICE PAR DEPT</h3>
           {Object.entries(scores).map(([k,v])=><div key={k} className='drow' onClick={()=>setSel(sel===k?null:k)}>
             <span className='dnm'>{k}</span>
-            <div className='dbar'>
-              <div style={{width:Math.round(v.score)+'%',height:'100%',background:riskColor(v.score),transition:'width 0.5s'}}></div>
-            </div>
+            <div className='dbar'><div style={{width:Math.round(v.score)+'%',height:'100%',background:riskColor(v.score),transition:'width 0.5s'}}></div></div>
             <span style={{color:riskColor(v.score),fontSize:'11px'}}>{Math.round(v.score)}</span>
           </div>)}
         </div>
@@ -101,7 +86,7 @@ export default function App(){
       <aside className='rpanel'>
         <div className='pblk'>
           <h3>ALERTES CONVERGENTES</h3>
-          {alerts.map((a,i)=><div key={i} className='alert'>
+          {ALERTS_BASE.map((a,i)=><div key={i} className='alert'>
             <span className={'alv '+a.level.toLowerCase()}>{a.level}</span>
             <span className='aldept'>{a.dept}</span>
             <p className='almsg'>{a.msg}</p>
@@ -110,16 +95,12 @@ export default function App(){
         </div>
         <div className='pblk'>
           <h3>INCIDENTS (12 MOIS)</h3>
-          <div className='chart'>
-            {[18,22,15,30,25,36,28,20,14,22,18,24].map((v,i)=><div key={i} className='bar' style={{height:(v/36*100)+'%'}}></div>)}
-          </div>
+          <div className='chart'>{[18,22,15,30,25,36,28,20,14,22,18,24].map((v,i)=><div key={i} className='bar' style={{height:(v/36*100)+'%'}}></div>)}</div>
           <div className='xlabels'>{['Fev','Avr','Jun','Aou','Oct','Dec'].map(l=><span key={l}>{l}</span>)}</div>
         </div>
         <div className='pblk'>
           <h3>PIB CROISSANCE (%)</h3>
-          <div className='chart2'>
-            {[5.8,6.0,6.4,6.1,6.5,6.8,6.2,6.9,7.0,6.7,7.1,7.3].map((v,i)=><div key={i} className='bar2' style={{height:(v/8*100)+'%'}}></div>)}
-          </div>
+          <div className='chart2'>{[5.8,6.0,6.4,6.1,6.5,6.8,6.2,6.9,7.0,6.7,7.1,7.3].map((v,i)=><div key={i} className='bar2' style={{height:(v/8*100)+'%'}}></div>)}</div>
           <div className='xlabels'>{['Jan','Fev','Avr','Jun','Jul','Aou','Oct','Dec'].map(l=><span key={l}>{l}</span>)}</div>
         </div>
       </aside>
