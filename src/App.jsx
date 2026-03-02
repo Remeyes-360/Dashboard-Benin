@@ -1,26 +1,135 @@
 
-import {useState,useEffect} from 'react';
-import {MapContainer,TileLayer,GeoJSON} from 'react-leaflet';
-import {AreaChart,Area,BarChart,Bar,XAxis,YAxis,Tooltip,ResponsiveContainer} from 'recharts';
-import 'leaflet/dist/leaflet.css';
-import './App.css';
-const GEO='https://raw.githubusercontent.com/wmgeolab/geoBoundaries/main/releaseData/gbOpen/BEN/ADM1/geoBoundaries-BEN-ADM1_simplified.geojson';
-const DEPTS={Alibori:{score:78,meteo:'35C Ens.',incidents:12,trend:'up'},Atacora:{score:62,meteo:'31C Nua.',incidents:8,trend:'up'},Atlantique:{score:28,meteo:'30C Ens.',incidents:2,trend:'down'},Borgou:{score:55,meteo:'33C Ens.',incidents:6,trend:'stable'},Collines:{score:32,meteo:'32C Nua.',incidents:3,trend:'stable'},Couffo:{score:25,meteo:'29C Ens.',incidents:1,trend:'down'},Donga:{score:58,meteo:'30C Cou.',incidents:7,trend:'up'},Littoral:{score:20,meteo:'30C Ens.',incidents:1,trend:'down'},Mono:{score:22,meteo:'28C Ens.',incidents:2,trend:'stable'},Oueme:{score:30,meteo:'31C Ens.',incidents:3,trend:'stable'},Plateau:{score:35,meteo:'32C Nua.',incidents:3,trend:'stable'},Zou:{score:40,meteo:'31C Ens.',incidents:4,trend:'up'}};
-const ALERTS=[{id:1,level:'CRITICAL',dept:'Alibori',msg:'Convergence: incidents+chaleur+frontiere',time:'09:47',active:true},{id:2,level:'HIGH',dept:'Atacora',msg:'Activite transfrontaliere inhabituelle',time:'08:23',active:true},{id:3,level:'MEDIUM',dept:'Borgou',msg:'Tensions communautaires zone pastorale',time:'07:15',active:false}];
-const TICKER=['[SECURITE] Patrouilles renforcees zone Malanville-Karimama','[METEO] Alerte chaleur 42C prevus nord Benin','[DIPLO] Reunion CEDEAO Cotonou - agenda securitaire sous-region','[ECONOMIE] Hausse prix carburant +8% impact transport nord','[SECURITE] Incident frontalier Atacora - situation sous controle','[SANTE] Campagne vaccination meningite A departement Alibori','[POLITIQUE] Session parlement - budget defense en discussion'];
-const CHART=[{m:'Jan',i:8,p:2.1},{m:'Fev',i:11,p:2.3},{m:'Mar',i:9,p:2.2},{m:'Avr',i:14,p:2.4},{m:'Mai',i:18,p:2.3},{m:'Jun',i:22,p:2.5},{m:'Jul',i:28,p:2.2},{m:'Aou',i:31,p:2.1},{m:'Sep',i:35,p:2.0},{m:'Oct',i:29,p:2.2},{m:'Nov',i:24,p:2.4},{m:'Dec',i:19,p:2.6}];
-function riskColor(s){return s>70?'#ff2020':s>50?'#ff8800':s>30?'#ffdd00':'#22ff88';}
-export default function App(){const [geo,setGeo]=useState(null);const [tick,setTick]=useState(0);const [time,setTime]=useState(new Date().toLocaleTimeString('fr-FR'));const [scores,setScores]=useState(DEPTS);const [sel,setSel]=useState(null);
-useEffect(()=>{fetch(GEO).then(r=>r.json()).then(setGeo)},[]);
-useEffect(()=>{const iv=setInterval(()=>{setTick(t=>t+1);setTime(new Date().toLocaleTimeString('fr-FR'));setScores(prev=>{const n={...prev};Object.keys(n).forEach(k=>{n[k]={...n[k],score:Math.max(0,Math.min(100,n[k].score+(Math.random()-0.48)*2))};});return n;});},30000);return ()=>clearInterval(iv);},[]);
-const gS=Math.round(Object.values(scores).reduce((a,d)=>a+d.score,0)/Object.keys(scores).length);
-const styleGeo=(f)=>{const nm=f.properties.shapeName||'';const d=scores[nm]||{score:30};return{weight:1,color:'#00ffcc33',fillColor:riskColor(d.score),fillOpacity:0.55};};
-return(<div className='app'><header className='hdr'><div className='hdr-l'><span className='logo'>BJ MONITOR</span><span className='ver'>V6.0 DYNAMIC</span></div><div className='hdr-c'><span className='clk'>{time}</span><span className='gidx' style={{color:riskColor(gS)}}>INDICE NATIONAL: {gS}/100</span></div><div className='hdr-r'><span className='live'>DIRECT</span><span className='cyc'>Cycle {tick}</span></div></header>
-<div className='body'><aside className='lpanel'><div className='pblk'><h3>COUCHES</h3><div className='layers'><div className='layer on'>SECURITE</div><div className='layer on'>METEO</div><div className='layer on'>ECONOMIE</div><div className='layer on'>FRONTIERES</div><div className='layer off'>INFRA</div></div></div>
-<div className='pblk'><h3>INDICE PAR DEPT</h3>{Object.entries(scores).map(([k,v])=>(<div key={k} className='drow' onClick={()=>setSel(sel===k?null:k)}><span className='dnm'>{k}</span><div className='dbar'><div style={{width:Math.round(v.score)+'%',height:'100%',background:riskColor(v.score),transition:'width 0.5s'}}></div></div><span style={{color:riskColor(v.score),fontSize:'11px'}}>{Math.round(v.score)}</span></div>))}</div></aside>
-<main className='mapa'><MapContainer center={[9.3,2.3]} zoom={7} style={{height:'100%',width:'100%'}} zoomControl={true}><TileLayer url='https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' attribution='CartoDB'/>{geo&&<GeoJSON data={geo} style={styleGeo} onEachFeature={(f,l)=>{const nm=f.properties.shapeName||'?';const d=scores[nm]||{score:0,incidents:0,meteo:'N/A'};l.bindPopup('<b>'+nm+'</b><br>Risque: '+Math.round(d.score)+'/100<br>Incidents: '+d.incidents+'<br>Meteo: '+d.meteo);l.on('click',()=>setSel(nm));}}/>}</MapContainer></main>
-<aside className='rpanel'><div className='pblk'><h3>ALERTES CONVERGENTES</h3>{ALERTS.map(a=>(<div key={a.id} className={'aitem '+(a.active?'aon':'aoff')}><span className={'alv '+a.level}>{a.level}</span><span className='adp'>{a.dept}</span><p className='amsg'>{a.msg}</p><span className='atm'>{a.time}</span></div>))}</div>
-<div className='pblk'><h3>INCIDENTS (12 MOIS)</h3><ResponsiveContainer width='100%' height={120}><AreaChart data={CHART}><XAxis dataKey='m' tick={{fill:'#888',fontSize:9}}/><YAxis tick={{fill:'#888',fontSize:9}}/><Tooltip contentStyle={{background:'#111',border:'1px solid #00ffcc',fontSize:10}}/><Area type='monotone' dataKey='i' stroke='#ff4444' fill='#ff444433'/></AreaChart></ResponsiveContainer></div>
-<div className='pblk'><h3>PIB CROISSANCE (%)</h3><ResponsiveContainer width='100%' height={100}><BarChart data={CHART}><XAxis dataKey='m' tick={{fill:'#888',fontSize:9}}/><Tooltip contentStyle={{background:'#111',border:'1px solid #00ffcc',fontSize:10}}/><Bar dataKey='p' fill='#00ccff66' stroke='#00ccff'/></BarChart></ResponsiveContainer></div>
-{sel&&scores[sel]&&<div className='pblk detail'><h3>DEPARTEMENT: {sel}</h3><p>Score risque: <b style={{color:riskColor(scores[sel].score)}}>{Math.round(scores[sel].score)}/100</b></p><p>Incidents: {scores[sel].incidents}</p><p>Meteo: {scores[sel].meteo}</p><p>Tendance: {scores[sel].trend}</p></div>}</aside></div>
-<footer className='ticker'><div className='tw'><div className='tc'>{[...TICKER,...TICKER].map((m,i)=>(<span key={i} className='tm'>{m} &nbsp;&nbsp;&#9654;&nbsp;&nbsp;</span>))}</div></div></footer></div>);}
+import React,{useState,useEffect,useRef,useCallback}from'react';
+import{MapContainer,TileLayer,GeoJSON,useMap}from'react-leaflet';
+import'leaflet/dist/leaflet.css';
+
+const DEPTS=['Alibori','Atacora','Atlantique','Borgou','Collines','Couffo','Donga','Littoral','Mono','Oueme','Plateau','Zou'];
+
+const GEO_BENIN={type:'FeatureCollection',features:[
+{type:'Feature',properties:{shapeName:'Alibori'},geometry:{type:'Polygon',coordinates:[[[2.7,11.7],[3.9,11.7],[3.9,12.4],[2.7,12.4],[2.7,11.7]]]}},
+{type:'Feature',properties:{shapeName:'Atacora'},geometry:{type:'Polygon',coordinates:[[[1.0,9.8],[2.7,9.8],[2.7,11.7],[1.0,11.7],[1.0,9.8]]]}},
+{type:'Feature',properties:{shapeName:'Atlantique'},geometry:{type:'Polygon',coordinates:[[[2.0,6.3],[2.8,6.3],[2.8,7.0],[2.0,7.0],[2.0,6.3]]]}},
+{type:'Feature',properties:{shapeName:'Borgou'},geometry:{type:'Polygon',coordinates:[[[2.7,9.0],[3.9,9.0],[3.9,11.7],[2.7,11.7],[2.7,9.0]]]}},
+{type:'Feature',properties:{shapeName:'Collines'},geometry:{type:'Polygon',coordinates:[[[2.0,7.8],[3.1,7.8],[3.1,9.0],[2.0,9.0],[2.0,7.8]]]}},
+{type:'Feature',properties:{shapeName:'Couffo'},geometry:{type:'Polygon',coordinates:[[[1.5,6.8],[2.0,6.8],[2.0,7.8],[1.5,7.8],[1.5,6.8]]]}},
+{type:'Feature',properties:{shapeName:'Donga'},geometry:{type:'Polygon',coordinates:[[[1.0,8.5],[2.7,8.5],[2.7,9.8],[1.0,9.8],[1.0,8.5]]]}},
+{type:'Feature',properties:{shapeName:'Littoral'},geometry:{type:'Polygon',coordinates:[[[2.3,6.2],[2.5,6.2],[2.5,6.5],[2.3,6.5],[2.3,6.2]]]}},
+{type:'Feature',properties:{shapeName:'Mono'},geometry:{type:'Polygon',coordinates:[[[1.5,6.2],[2.0,6.2],[2.0,6.8],[1.5,6.8],[1.5,6.2]]]}},
+{type:'Feature',properties:{shapeName:'Oueme'},geometry:{type:'Polygon',coordinates:[[[2.5,6.3],[3.1,6.3],[3.1,7.0],[2.5,7.0],[2.5,6.3]]]}},
+{type:'Feature',properties:{shapeName:'Plateau'},geometry:{type:'Polygon',coordinates:[[[2.5,7.0],[3.1,7.0],[3.1,7.8],[2.5,7.8],[2.5,7.0]]]}},
+{type:'Feature',properties:{shapeName:'Zou'},geometry:{type:'Polygon',coordinates:[[[2.0,7.0],[2.8,7.0],[2.8,7.8],[2.0,7.8],[2.0,7.0]]]}}
+]};
+
+const BASE_SCORES={Alibori:{score:75,incidents:12,meteo:'A'},Atacora:{score:62,incidents:8,meteo:'B'},Atlantique:{score:30,incidents:3,meteo:'B'},Borgou:{score:54,incidents:7,meteo:'B'},Collines:{score:31,incidents:4,meteo:'C'},Couffo:{score:26,incidents:2,meteo:'C'},Donga:{score:57,incidents:9,meteo:'B'},Littoral:{score:21,incidents:1,meteo:'D'},Mono:{score:22,incidents:2,meteo:'C'},Oueme:{score:35,incidents:4,meteo:'C'},Plateau:{score:36,incidents:3,meteo:'C'},Zou:{score:44,incidents:5,meteo:'B'}};
+const ALERTS_BASE=[{level:'CRITICAL',dept:'Alibori',msg:'Convergence: incidents+chaleur+frontiere',time:'09:47'},{level:'HIGH',dept:'Atacora',msg:'Activite transfrontaliere inhabituelle',time:'08:23'},{level:'MEDIUM',dept:'Borgou',msg:'Tensions communautaires zone pastorale',time:'07:15'}];
+const TICKER_MSGS=['[METEO] Alerte chaleur 42C prevus nord Benin','[DIPLO] Reunion CEDEAO Cotonou - agenda securitaire sous-region','[ECONOMIE] Hausse prix carburant +8% impact transport nord','[SECURITE] Incident frontalier Atacora - situation sous controle','[SANTE] Surveillance epidemiologique active zone Alibori'];
+
+const riskColor=s=>s>=70?'#ff2200':s>=50?'#ff8800':s>=30?'#ffcc00':'#00ffcc44';
+
+export default function App(){
+  const [scores,setScores]=useState(BASE_SCORES);
+  const [tick,setTick]=useState(0);
+  const [sel,setSel]=useState(null);
+  const [layers,setLayers]=useState({SECURITE:true,METEO:true,ECONOMIE:true,FRONTIERES:true,INFRA:false});
+  const [alerts,setAlerts]=useState(ALERTS_BASE);
+  const [tickerIdx,setTickerIdx]=useState(0);
+  const tickRef=useRef(0);
+
+  useEffect(()=>{
+    const iv=setInterval(()=>{
+      tickRef.current+=1;
+      setTick(t=>t+1);
+      setScores(prev=>{
+        const n={...prev};
+        DEPTS.forEach(d=>{n[d]={...n[d],score:Math.max(5,Math.min(100,n[d].score+(Math.random()-0.48)*2))};});
+        return n;
+      });
+      if(tickRef.current%5===0)setTickerIdx(i=>(i+1)%TICKER_MSGS.length);
+    },3000);
+    return()=>clearInterval(iv);
+  },[]);
+
+  const gS=Math.round(Object.values(scores).reduce((a,d)=>a+d.score,0)/Object.keys(scores).length);
+
+  const styleGeo=(f)=>{
+    const nm=f.properties.shapeName;
+    const d=scores[nm]||{score:30};
+    return{weight:1,color:'#00ffcc44',fillColor:riskColor(d.score),fillOpacity:0.6};
+  };
+
+  const onEachFeature=(f,l)=>{
+    const nm=f.properties.shapeName||'?';
+    const d=scores[nm]||{score:0,incidents:0,meteo:'A'};
+    l.bindPopup('<b>'+nm+'</b><br>Risque: '+Math.round(d.score)+'/100<br>Incidents: '+d.incidents+'<br>Meteo: '+d.meteo);
+    l.on('click',()=>setSel(nm));
+  };
+
+  const now=new Date();
+  const time=now.toTimeString().slice(0,8);
+
+  return <div className='app'>
+    <header className='hdr'>
+      <div className='hdr-l'><span className='logo'>BJ MONITOR</span><span className='ver'>V7.0</span></div>
+      <div className='hdr-c'><span className='time'>{time}</span><span className='gidx' style={{color:riskColor(gS)}}>INDICE NATIONAL: {gS}/100</span></div>
+      <div className='hdr-r'><span className='live'>DIRECT</span><span className='cyc'>Cycle {tick}</span></div>
+    </header>
+    <div className='body'>
+      <aside className='lpanel'>
+        <div className='pblk'>
+          <h3>COUCHES</h3>
+          <div className='layers'>
+            {Object.keys(layers).map(k=><div key={k} className={'layer '+(layers[k]?'on':'off')} onClick={()=>setLayers(p=>({...p,[k]:!p[k]}))}>{k}</div>)}
+          </div>
+        </div>
+        <div className='pblk'>
+          <h3>INDICE PAR DEPT</h3>
+          {Object.entries(scores).map(([k,v])=><div key={k} className='drow' onClick={()=>setSel(sel===k?null:k)}>
+            <span className='dnm'>{k}</span>
+            <div className='dbar'>
+              <div style={{width:Math.round(v.score)+'%',height:'100%',background:riskColor(v.score),transition:'width 0.5s'}}></div>
+            </div>
+            <span style={{color:riskColor(v.score),fontSize:'11px'}}>{Math.round(v.score)}</span>
+          </div>)}
+        </div>
+      </aside>
+      <main className='mapa'>
+        <MapContainer center={[9.3,2.3]} zoom={7} style={{height:'100%',width:'100%'}} zoomControl={true}>
+          <TileLayer url='https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' attribution='CartoDB'/>
+          <GeoJSON data={GEO_BENIN} style={styleGeo} onEachFeature={onEachFeature}/>
+        </MapContainer>
+      </main>
+      <aside className='rpanel'>
+        <div className='pblk'>
+          <h3>ALERTES CONVERGENTES</h3>
+          {alerts.map((a,i)=><div key={i} className='alert'>
+            <span className={'alv '+a.level.toLowerCase()}>{a.level}</span>
+            <span className='aldept'>{a.dept}</span>
+            <p className='almsg'>{a.msg}</p>
+            <span className='altime'>{a.time}</span>
+          </div>)}
+        </div>
+        <div className='pblk'>
+          <h3>INCIDENTS (12 MOIS)</h3>
+          <div className='chart'>
+            {[18,22,15,30,25,36,28,20,14,22,18,24].map((v,i)=><div key={i} className='bar' style={{height:(v/36*100)+'%'}}></div>)}
+          </div>
+          <div className='xlabels'>{['Fev','Avr','Jun','Aou','Oct','Dec'].map(l=><span key={l}>{l}</span>)}</div>
+        </div>
+        <div className='pblk'>
+          <h3>PIB CROISSANCE (%)</h3>
+          <div className='chart2'>
+            {[5.8,6.0,6.4,6.1,6.5,6.8,6.2,6.9,7.0,6.7,7.1,7.3].map((v,i)=><div key={i} className='bar2' style={{height:(v/8*100)+'%'}}></div>)}
+          </div>
+          <div className='xlabels'>{['Jan','Fev','Avr','Jun','Jul','Aou','Oct','Dec'].map(l=><span key={l}>{l}</span>)}</div>
+        </div>
+      </aside>
+    </div>
+    <div className='ticker'>
+      <span className='tmsg'>{TICKER_MSGS[tickerIdx]}</span>
+      <span className='tarr'>&#9658;</span>
+      <span className='tmsg'>{TICKER_MSGS[(tickerIdx+1)%TICKER_MSGS.length]}</span>
+      <span className='tarr'>&#9658;</span>
+      <span className='tmsg'>{TICKER_MSGS[(tickerIdx+2)%TICKER_MSGS.length]}</span>
+    </div>
+  </div>;
+}
